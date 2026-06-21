@@ -218,7 +218,7 @@ document.addEventListener('keydown', (e) => {
 
 // â”€â”€ Markdown Parser â”€â”€
 function parseMarkdown(text) {
-    if (text.includes('Fetching') || text.includes('Analyzing') || text.startsWith('AI API Error')) { return text; }
+    if (text.startsWith('Fetching') || text.startsWith('Analyzing') || text.startsWith('AI API Error')) { return text; }
 
     let raw = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     currentReviewData = [];
@@ -326,7 +326,7 @@ window.addEventListener('message', event => {
         const el = document.getElementById('result');
         el.style.display = 'block';
 
-        if (message.isError || message.text.includes('Fetching') || message.text.includes('Analyzing')) {
+        if (message.isError || message.text.startsWith('Fetching') || message.text.startsWith('Analyzing')) {
             el.innerText = message.text;
             el.className = message.isError ? 'error' : '';
         } else {

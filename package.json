@@ -1,13 +1,14 @@
 {
-  "name": "commitlens",
-  "displayName": "CommitLens",
+  "name": "commit-lens",
+  "displayName": "Commit-Lens",
   "description": "CommitLens: AI-powered Code Review Agent",
+  "icon": "media/logo.png",
   "publisher": "saafir-bhimani",
   "repository": {
     "type": "git",
     "url": "https://github.com/Saafirbhimani-154/CommitLens-vscode"
   },
-  "version": "1.0.0",
+  "version": "1.0.1",
   "engines": {
     "vscode": "^1.85.0"
   },

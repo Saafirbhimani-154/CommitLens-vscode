@@ -10,4 +10,8 @@ vsc-extension-quickstart.md
 **/*.ts
 .env
 .key
-memory/
+memory/**
+.github/**
+.agents/**
+database/**
+.claude
