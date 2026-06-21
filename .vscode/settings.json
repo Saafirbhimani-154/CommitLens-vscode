@@ -1,0 +1,5 @@
+{
+    "css.validate": false,
+    "html.validate.styles": false,
+    "mssql.intelliSense.enableErrorChecking": false
+}
