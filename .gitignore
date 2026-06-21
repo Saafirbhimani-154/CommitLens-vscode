@@ -6,8 +6,12 @@ dist/
 
 # Environment & Config
 .env
+.key
 src/config.ts
 
-# OS Files
-.DS_Store
-Thumbs.db
+# archieve docs and extra files
+docs/archive/
+database/archive/
+
+# Internal Agent Memory
+memory

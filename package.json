@@ -1,0 +1,65 @@
+{
+  "name": "commitlens",
+  "displayName": "CommitLens",
+  "description": "CommitLens: AI-powered Code Review Agent",
+  "publisher": "saafir-bhimani",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Saafirbhimani-154/CommitLens-vscode"
+  },
+  "version": "1.0.0",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [],
+  "main": "./out/extension.js",
+  "contributes": {
+    "configuration": {
+      "title": "CommitLens",
+      "properties": {
+        "commitlens.modelId": {
+          "type": "string",
+          "default": "anthropic/claude-3-haiku",
+          "description": "The OpenRouter Model ID to use for code reviews (e.g., anthropic/claude-3-haiku, openai/gpt-4o)."
+        }
+      }
+    },
+    "commands": [
+      {
+        "command": "commitlens.openUI",
+        "title": "CommitLens: Open Review Panel",
+        "icon": "$(telescope)"
+      }
+    ],
+    "menus": {
+      "scm/title": [
+        {
+          "command": "commitlens.openUI",
+          "when": "scmProvider == git",
+          "group": "navigation"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src --ext ts",
+    "test": "vscode-test"
+  },
+  "devDependencies": {
+    "@types/node": "18.x",
+    "@types/vscode": "^1.85.0",
+    "@vscode/vsce": "^3.9.2",
+    "typescript": "^5.3.3"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.108.2",
+    "dotenv": "^17.4.2"
+  }
+}
