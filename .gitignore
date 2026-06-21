@@ -1,0 +1,13 @@
+node_modules/
+out/
+dist/
+.vscode-test/
+*.vsix
+
+# Environment & Config
+.env
+src/config.ts
+
+# OS Files
+.DS_Store
+Thumbs.db
