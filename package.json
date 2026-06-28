@@ -8,14 +8,25 @@
     "type": "git",
     "url": "https://github.com/Saafirbhimani-154/CommitLens-vscode"
   },
-  "version": "1.0.1",
+  "version": "1.0.2",
   "engines": {
     "vscode": "^1.85.0"
   },
   "categories": [
-    "Other"
+    "Machine Learning",
+    "Linters",
+    "Education"
   ],
-  "activationEvents": [],
+  "keywords": [
+    "ai",
+    "code review",
+    "openrouter",
+    "claude",
+    "gpt-4"
+  ],
+  "activationEvents": [
+    "onCommand:commitlens.openUI"
+  ],
   "main": "./out/extension.js",
   "contributes": {
     "configuration": {

@@ -12,7 +12,7 @@ export function activate(context: vscode.ExtensionContext) {
         const panel = vscode.window.createWebviewPanel(
             'codeReviewUI',
             'CommitLens, AI Code Reviewer',
-            vscode.ViewColumn.Two,
+            vscode.ViewColumn.Active,
             { 
                 enableScripts: true,
                 retainContextWhenHidden: true,
@@ -49,7 +49,7 @@ export function activate(context: vscode.ExtensionContext) {
                             panel.webview.postMessage({ command: 'unlockUI', username: session.account.label });
                         }
                     } catch (err) {
-                        panel.webview.postMessage({ command: 'updateResult', text: 'Login Failed.', isError: true });
+                        panel.webview.postMessage({ command: 'showToast', text: 'Login Failed.', type: 'error' });
                     }
                     break;
                 case 'logout':
@@ -63,7 +63,7 @@ export function activate(context: vscode.ExtensionContext) {
                     });
                     if (apiKey) {
                         await context.secrets.store('commitlens.apiKey', apiKey);
-                        panel.webview.postMessage({ command: 'updateResult', text: '✅ API Key Saved!', isError: false });
+                        panel.webview.postMessage({ command: 'showToast', text: 'API Key securely saved!', type: 'success' });
                     }
                     break;
                 case 'setModelId':
@@ -76,7 +76,7 @@ export function activate(context: vscode.ExtensionContext) {
                     });
                     if (newModel && newModel.trim() !== '') {
                         await config.update('modelId', newModel.trim(), vscode.ConfigurationTarget.Global);
-                        panel.webview.postMessage({ command: 'updateResult', text: `✅ Model ID successfully saved as: ${newModel.trim()}`, isError: false });
+                        panel.webview.postMessage({ command: 'showToast', text: `Model ID saved: ${newModel.trim()}`, type: 'success' });
                     }
                     break;
                 case 'fetchGitState':
@@ -191,6 +191,7 @@ async function runReview(context: vscode.ExtensionContext, panel: vscode.Webview
 
     const config = vscode.workspace.getConfiguration('commitlens');
     let modelId = config.get<string>('modelId') || 'anthropic/claude-3-haiku';
+    let issueLimit = 10;
 
     panel.webview.postMessage({ command: 'updateResult', text: `Fetching ${type} changes...`, isError: false });
 
@@ -208,7 +209,7 @@ async function runReview(context: vscode.ExtensionContext, panel: vscode.Webview
                 break;
             }
         }
-        const gitCmd = type === 'staged' ? 'git diff --cached' : 'git diff';
+        const gitCmd = type === 'staged' ? 'git diff --cached -U20 -W' : 'git diff -U20 -W';
         
         const { stdout, stderr } = await execAsync(gitCmd, { cwd });
         
@@ -244,6 +245,10 @@ async function runReview(context: vscode.ExtensionContext, panel: vscode.Webview
                 systemPrompt = Buffer.from(skillBytes).toString('utf8');
             } catch (fsError) {
                 console.log(`${skillFilename} not found in docs folder, using default prompt.`);
+            }
+
+            if (issueLimit > 0) {
+                systemPrompt += `\n\nCRITICAL RULE: You are strictly limited to reporting a maximum of ${issueLimit} issues total. You MUST sort your final output by category severity. Do not group by file. Start with the highest severity categories first. If you reach ${issueLimit} issues, STOP and append this exact message at the very end of your response: '\n\n⚠️ **Note:** Only the top ${issueLimit} most severe issues are shown to keep feedback focused. There may be more issues in your codebase. Please fix these and trigger another review to find the rest.'`;
             }
 
             const payload = {
@@ -285,7 +290,31 @@ async function runReview(context: vscode.ExtensionContext, panel: vscode.Webview
 
             const data = await response.json() as any;
             if (data.choices && data.choices.length > 0) {
-                reviewResult = data.choices[0].message.content;
+                let rawContent = data.choices[0].message.content;
+                
+                if (rawContent) {
+                    const blocks = rawContent.split(/(?=\[[A-Z_]+\]\s*\(Confidence:)/g);
+                    const filteredBlocks = [];
+                    let deletedCount = 0;
+                    for (const block of blocks) {
+                        const match = block.match(/Confidence:\s*(\d+)%/i);
+                        if (match) {
+                            const score = parseInt(match[1], 10);
+                            if (score >= 80) {
+                                filteredBlocks.push(block);
+                            } else {
+                                deletedCount++;
+                            }
+                        } else {
+                            filteredBlocks.push(block);
+                        }
+                    }
+                    reviewResult = filteredBlocks.join('').trim();
+                    if (deletedCount > 0) {
+                        reviewResult += `\n\n*(Automatically filtered out ${deletedCount} low-confidence issues)*`;
+                    }
+                }
+
                 if (!reviewResult || reviewResult.trim() === '') {
                     reviewResult = "✅ No issues found! Your code looks perfectly fine.";
                 }
